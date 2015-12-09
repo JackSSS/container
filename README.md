@@ -1,2 +1,2 @@
 # container
-conteainer presentation on chroot, containers and Docker
+container presentation on chroot, containers and Docker
