@@ -1,0 +1,119 @@
+chroot
+_____
+
+From Wikipedia, the free encyclopedia
+
+A chroot on Unix operating systems is an operation that changes the apparent root directory 
+for the current running process and its children. A program that is run in such a modified
+environment cannot name (and therefore normally cannot access) files outside the designated
+directory tree. The term "chroot" may refer to the chroot(2) system call or the chroot(8) wrapper
+program. The modified environment is called a "chroot jail"
+
+The chroot system call was introduced during development of Version 7 Unix in 1979, and added 
+to BSD by Bill Joy on 18 March 1982 – 17 months before 4.2BSD was released – in order to test 
+its installation and build system.[citation needed] An early use of the term "jail" as applied to chroot 
+comes from Bill Cheswick creating a honeypot to monitor a cracker in 1991.[1] To make it useful 
+for virtualization, FreeBSD expanded the concept and in its 4.0 release in 2000 introduced the jail 
+command.[2] By 2004 this had led to the coining of the term jailbreak.[3] In 2005, Sun released 
+Solaris Containers, described as "chroot on steroids."[4] In 2008, LXC 
+(upon which Docker was later built) adopted the "container" terminology[5] and gained popularity
+in 2013 due to inclusion into Linux kernel 3.8 of user namespaces.[6]
+
+*** Refer to limitations in wiki
+
+it can appear to do much more than it actually does. The confusion arises because it appears 
+to some to be a security tool – there are limited security uses – when it is meant as a tool for 
+isolating processes for installation, debugging, and legacy library usage.
+
+What chroot() actually does is fairly simple, it modifies pathname lookups for a process and its 
+children so that any reference to a path starting '/' will effectively have the new root, which is 
+passed as the single argument, prepended onto the path. The current working directory is left 
+unchanged and relative paths can still refer to files outside of the new root.
+
+Calls to chroot() do not stack, with additional calls essentially overwriting the existing one. 
+It can only be called by privileged programs and can be trivially bypassed by those who can 
+call it as man 2 chroot describes:
+
+    This  call does not change the current working directory, so that after
+    the call '.' can be outside the tree rooted at '/'.  In particular, the
+    superuser  can  escape from a 'chroot jail' by doing 'mkdir foo; chroot
+    foo; cd ..'.
+The use of the term "chroot jail" in the manpage is unfortunate as it may help perpetuate a 
+common misconception about chroot(). It often gets mentioned in the same context as the "jail" 
+calls for the BSDs, but it has little in common with them. A BSD jail is a mini-virtualization that 
+partitions a system into multiple virtual systems each of which can have its own root account.
+chroot() has none of that sophistication
+
+(continue)
+1 ^ Cheswick, Bill (1991). "An Evening with Berferd: In Which a Cracker is Lured, Endured, and Studied" (PDF). USENIX Summer Conference Proceedings, Volume 1. USENIX. San Francisco, California: The Association. p. 163.
+2 ^ Riondato, Matteo. "FreeBSD Handbook Chapter 15 Jails". freebsd.org. The FreeBSD Project. Retrieved 2014-08-19.
+3 ^ Peikar, Cyrus (2004-01-12). Security Warrior. O'Reilly Media. p. 304. ISBN 9780596552398. Retrieved 2014-08-19.
+4 ^ Schmidt, Klaus (2006-09-02). High Availability and Disaster Recovery: Concepts, Design, Implementation. Springer Science & Business Media. p. 186. ISBN 9783540345824. Retrieved 2014-08-21.
+5 ^ "SourceForge LXC Download Files". sourceforge.net. Retrieved 2014-08-21.
+6 ^ Rosen, Rami (2014-03-26). "Linux Containers and the Future Cloud" (PDF). Retrieved 2014-08-21.
+Jump up ^ http://man.freebsd.org/chroot/2
+8 ^ http://wiki.mandriva.com/en/Development/Howto/Chroot#Launch_X_Applications_inside_the_chroot
+Jump up ^ http://www.gentoo-wiki.info/HOWTO_startx_in_a_chroot
+Jump up ^ "sshd_config(5) manual page". 2008-04-05Why Use Namespaces for Process Isolation?
+
+Why Use Namespaces for Process Isolation?
+
+In a single-user computer, a single system environment may be fine. But on a server, where you
+want to run multiple services, it is essential to security and stability that the services are as isolated 
+from each other as possible. Imagine a server running multiple services, one of which gets 
+compromised by an intruder. In such a case, the intruder may be able to exploit that service and 
+work their way to the other services, and may even be able compromise the entire server. 
+Namespace isolation can provide a secure environment to eliminate this risk.
+
+For example, using namespacing, it is possible to safely execute arbitrary or unknown programs on 
+your server. Recently, there has been a growing number of programming contest and “hackathon” 
+platforms, such as HackerRank, TopCoder, Codeforces, and many more. A lot of them utilize 
+automated pipelines to run and validate programs that are submitted by the contestants. It is often 
+impossible to know in advance the true nature of contestants’ programs, and some may even 
+contain malicious elements. By running these programs namespaced in complete isolation from 
+the rest of the system, the software can be tested and validated without putting the rest of the 
+machine at risk. Similarly, online continuous integration services, such as Drone.io, automatically 
+fetch your code repository and execute the test scripts on their own servers. Again, namespace
+isolation is what makes it possible to provide these services safely.
+
+Docker containers, on the other hand, use some key features of your real operating system, 
+including namespaces, and ensure a similar level of isolation, but without emulating the hardware 
+and running yet another operating system on the same machine. 
+
+Setting up a Docker Container
+
+Applications running in virtual machines, apart from the hypervisor, require a full instance of the 
+operating system and any supporting libraries. Containers, on the other hand, share the operating 
+system with the host. Hypervisor is comparable to the container engine (represented as Docker on 
+the image) in a sense that it manages the lifecycle of the containers. The important difference is 
+that the processes running inside the containers are just like the native processes on the host, and 
+do not introduce any overheads associated with hypervisor execution. Additionally, applications 
+can reuse the libraries and share the data between containers.
+
+Docker Architecture
+
+At the top of the architecture diagram there are registries. By default, the main registry is the
+Docker Hub which hosts public and official images. Organizations can also host their private 
+registries if they desire.
+
+On the right-hand side we have images and containers. Images can be downloaded from 
+registries explicitly (docker pull imageName) or implicitly when starting a container. Once the 
+image is downloaded it is cached locally.
+
+Containers are the instances of images - they are the living thing. There could be multiple 
+containers running based on the same image.
+
+At the centre, there is the Docker daemon responsible for creating, running, and monitoring 
+containers. It also takes care of building and storing images. Finally, on the left-hand side there is a 
+Docker client. It talks to the daemon via HTTP. Unix sockets are used when on the same machine, 
+but remote management is possible via HTTP based API.
+
+http://www.toptal.com/devops/getting-started-with-docker-simplifying-devops [vm_vs_docker]
+
+https://www.airpair.com/node.js/posts/getting-started-with-docker-for-the-nodejs-dev[using docker with node.js]
+
+http://www.blogs.progotik.com/634/[setting up chroot jail]
+
+https://docs.docker.com/engine/installation/mac/[docker installation mac]
+
+https://docs.docker.com/engine/installation/windows/[docker insatllation windows]
